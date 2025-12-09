@@ -8,7 +8,7 @@ export const useHandLandmarker = (videoRef: React.RefObject<HTMLVideoElement>) =
   const setTargetStrength = useTreeStore((state) => state.setTargetStrength);
   const setCameraParallax = useTreeStore((state) => state.setCameraParallax);
   const setIsGestureActive = useTreeStore((state) => state.setIsGestureActive);
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
     const init = async () => {

@@ -1,3 +1,5 @@
+import { ThreeElements } from '@react-three/fiber';
+
 export interface TreeState {
   interactionStrength: number; // 1.0 = Tree, 0.0 = Chaos
   targetStrength: number;
@@ -12,8 +14,34 @@ export interface TreeState {
   setIsGestureActive: (active: boolean) => void;
   audioUrl: string | null;
   setAudioUrl: (url: string | null) => void;
+  isAudioPlaying: boolean;
+  setIsAudioPlaying: (playing: boolean) => void;
 }
 
 export interface HandLandmarkerResult {
   landmarks: number[][][];
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      ambientLight: any;
+      pointLight: any;
+      spotLight: any;
+      group: any;
+      mesh: any;
+      points: any;
+      bufferGeometry: any;
+      bufferAttribute: any;
+      shaderMaterial: any;
+      sphereGeometry: any;
+      meshStandardMaterial: any;
+      boxGeometry: any;
+      icosahedronGeometry: any;
+      meshPhysicalMaterial: any;
+      planeGeometry: any;
+      meshBasicMaterial: any;
+      color: any;
+    }
+  }
 }

@@ -38,9 +38,10 @@ const PhotoFrame = ({ url, index, total }: { url: string, index: number, total: 
     meshRef.current.position.lerp(pos, 0.08);
 
     // Dynamic Scale Logic
-    // Tree State (1.0): Scale 0.66
-    // Chaos State (0.0): Scale 1.8 
-    const scale = THREE.MathUtils.lerp(1.8, 0.66, interactionStrength);
+    // Scaled up by 15% per request
+    // Old Tree State: 0.66 -> New: 0.76
+    // Old Chaos State: 1.8 -> New: 2.07 
+    const scale = THREE.MathUtils.lerp(2.07, 0.76, interactionStrength);
     meshRef.current.scale.setScalar(scale);
 
     // Rotation Logic
