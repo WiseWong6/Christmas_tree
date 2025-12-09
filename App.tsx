@@ -1,8 +1,9 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { Scene } from './Scene';
 import { Uploader } from './components/UI/Uploader';
 import { Gestures } from './components/UI/Gestures';
 import { PhotoOverlay } from './components/UI/PhotoOverlay';
+import { useTreeStore } from './stores/useTreeStore';
 
 const Loader = () => (
   <div className="absolute inset-0 flex items-center justify-center bg-black text-white z-50">
@@ -16,12 +17,51 @@ const Loader = () => (
   </div>
 );
 
+const AudioController = () => {
+  const audioUrl = useTreeStore((state) => state.audioUrl);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (audioUrl) {
+      // Stop previous audio if exists
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
+      const audio = new Audio(audioUrl);
+      audio.loop = true;
+      audio.volume = 0.5;
+      
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("Auto-play was prevented. Interaction required.", error);
+        });
+      }
+      
+      audioRef.current = audio;
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [audioUrl]);
+
+  return null;
+};
+
 const App = () => {
   return (
     <div className="w-full h-screen relative bg-black">
       <Suspense fallback={<Loader />}>
         <Scene />
       </Suspense>
+
+      {/* Audio Logic */}
+      <AudioController />
 
       {/* UI Overlay */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">

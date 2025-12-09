@@ -13,9 +13,11 @@ export const useTreeStore = create<ExtendedTreeState>((set) => ({
   photos: [],
   focusedPhotoIndex: null,
   isGestureActive: false,
+  audioUrl: null,
   setTargetStrength: (val) => set({ targetStrength: val }),
   setCameraParallax: (x, y) => set({ cameraParallax: { x, y } }),
   addPhoto: (url) => set((state) => ({ photos: [...state.photos, url] })),
   setFocusedPhotoIndex: (index) => set({ focusedPhotoIndex: index }),
   setIsGestureActive: (active) => set({ isGestureActive: active }),
+  setAudioUrl: (url) => set({ audioUrl: url }),
 }));

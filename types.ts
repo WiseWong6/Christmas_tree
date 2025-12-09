@@ -10,6 +10,8 @@ export interface TreeState {
   setFocusedPhotoIndex: (index: number | null) => void;
   isGestureActive: boolean;
   setIsGestureActive: (active: boolean) => void;
+  audioUrl: string | null;
+  setAudioUrl: (url: string | null) => void;
 }
 
 export interface HandLandmarkerResult {
