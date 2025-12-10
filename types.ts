@@ -42,6 +42,20 @@ declare global {
       planeGeometry: any;
       meshBasicMaterial: any;
       color: any;
+
+      // HTML Elements
+      div: any;
+      span: any;
+      label: any;
+      input: any;
+      button: any;
+      p: any;
+      h1: any;
+      img: any;
+      video: any;
+      svg: any;
+      path: any;
+      circle: any;
     }
   }
 }
