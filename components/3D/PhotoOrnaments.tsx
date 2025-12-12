@@ -1,5 +1,5 @@
 
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { useTreeStore } from '../../stores/useTreeStore';
@@ -7,12 +7,21 @@ import { Text } from '@react-three/drei';
 
 const PhotoFrame = ({ url, index, total }: { url: string, index: number, total: number }) => {
   const texture = useLoader(THREE.TextureLoader, url);
+  
+  // Ensure correct color profile for photos
+  useEffect(() => {
+    if (texture) {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+    }
+  }, [texture]);
+
   const meshRef = useRef<THREE.Group>(null);
   
   // Calculate fixed positions once
   const { treePos, chaosPos, rotationOffset } = useMemo(() => {
     // Spiral distribution for photos
-    // Height Range: -4 to 7 (Leaves some space at very top and bottom)
+    // Height Range: -4 to 7
     const y = -4 + (index / Math.max(1, total)) * 11; 
     
     // Radius matches cone at this height
@@ -38,9 +47,6 @@ const PhotoFrame = ({ url, index, total }: { url: string, index: number, total: 
     meshRef.current.position.lerp(pos, 0.08);
 
     // Dynamic Scale Logic
-    // Scaled up by 15% per request
-    // Old Tree State: 0.66 -> New: 0.76
-    // Old Chaos State: 1.8 -> New: 2.07 
     const scale = THREE.MathUtils.lerp(2.07, 0.76, interactionStrength);
     meshRef.current.scale.setScalar(scale);
 
@@ -76,7 +82,11 @@ const PhotoFrame = ({ url, index, total }: { url: string, index: number, total: 
       {/* Photo */}
       <mesh position={[0, 0.12, 0.015]}>
         <planeGeometry args={[1.0, 1.0]} />
-        <meshBasicMaterial map={texture} />
+        <meshBasicMaterial 
+          map={texture} 
+          side={THREE.DoubleSide} 
+          toneMapped={false} 
+        />
       </mesh>
       {/* Text Hint */}
       <Text 
@@ -97,7 +107,8 @@ export const PhotoOrnaments = () => {
   return (
     <group>
       {photos.map((url, i) => (
-        <React.Suspense key={i} fallback={null}>
+        <React.Suspense key={url} fallback={null}> 
+          {/* Changed key from 'i' to 'url' to ensure correct re-mounting only when needed, though position calc depends on index */}
           <PhotoFrame 
             url={url} 
             index={i} 
