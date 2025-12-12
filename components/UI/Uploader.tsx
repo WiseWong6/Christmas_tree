@@ -1,66 +1,90 @@
+
 import React, { useState } from 'react';
 import { useTreeStore } from '../../stores/useTreeStore';
 
-// Helper to compress images to avoid memory crashes on mobile
+// Helper to compress images, with robust fallbacks
 const resizeImage = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    // Optimization: Create Object URL from file directly instead of FileReader
-    // This avoids reading the entire file into JS string memory (Base64) which crashes mobile browsers
-    const srcUrl = URL.createObjectURL(file);
-    const img = new Image();
+  return new Promise((resolve) => {
+    // Fallback function: returns the original file URL if anything goes wrong
+    const useOriginal = () => {
+      console.warn("Image resizing failed or timed out, using original file.");
+      resolve(URL.createObjectURL(file));
+    };
 
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
-      
-      // Use slightly smaller max dimension for mobile safety (800px is sufficient for 3D textures)
-      const MAX_DIMENSION = 1024;
+    // Safety timeout: If processing takes > 2 seconds, give up and use original
+    const timer = setTimeout(() => {
+        useOriginal();
+    }, 2000);
 
-      if (width > height) {
-        if (width > MAX_DIMENSION) {
-          height *= MAX_DIMENSION / width;
-          width = MAX_DIMENSION;
-        }
-      } else {
-        if (height > MAX_DIMENSION) {
-          width *= MAX_DIMENSION / height;
-          height = MAX_DIMENSION;
-        }
-      }
+    try {
+        const srcUrl = URL.createObjectURL(file);
+        const img = new Image();
 
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          // CRITICAL FIX: Use toBlob instead of toDataURL. 
-          // toDataURL creates massive base64 strings in heap. 
-          // toBlob keeps data in browser internal storage.
-          canvas.toBlob((blob) => {
-            // Clean up source object URL
+        img.onload = () => {
+          try {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              
+              const MAX_DIMENSION = 1024;
+
+              if (width > height) {
+                if (width > MAX_DIMENSION) {
+                  height *= MAX_DIMENSION / width;
+                  width = MAX_DIMENSION;
+                }
+              } else {
+                if (height > MAX_DIMENSION) {
+                  width *= MAX_DIMENSION / height;
+                  height = MAX_DIMENSION;
+                }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              
+              if (ctx) {
+                  ctx.drawImage(img, 0, 0, width, height);
+                  
+                  // Preserve transparency for PNGs, use JPEG for others
+                  const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                  
+                  canvas.toBlob((blob) => {
+                    clearTimeout(timer);
+                    URL.revokeObjectURL(srcUrl); // Clean up temp source
+
+                    if (blob) {
+                        resolve(URL.createObjectURL(blob));
+                    } else {
+                        useOriginal();
+                    }
+                  }, outputType, 0.85);
+              } else {
+                  clearTimeout(timer);
+                  URL.revokeObjectURL(srcUrl);
+                  useOriginal();
+              }
+          } catch (err) {
+              console.error("Canvas error:", err);
+              clearTimeout(timer);
+              useOriginal();
+          }
+        };
+
+        img.onerror = (err) => {
+            console.error("Image load error:", err);
+            clearTimeout(timer);
             URL.revokeObjectURL(srcUrl);
+            useOriginal();
+        };
 
-            if (blob) {
-                const blobUrl = URL.createObjectURL(blob);
-                resolve(blobUrl);
-            } else {
-                reject(new Error("Canvas blob creation failed"));
-            }
-          }, 'image/jpeg', 0.8);
-      } else {
-          URL.revokeObjectURL(srcUrl);
-          reject(new Error("Canvas context failed"));
-      }
-    };
-
-    img.onerror = (err) => {
-        URL.revokeObjectURL(srcUrl);
-        reject(err);
-    };
-
-    img.src = srcUrl;
+        img.src = srcUrl;
+    } catch (err) {
+        console.error("Fatal resize error:", err);
+        clearTimeout(timer);
+        useOriginal();
+    }
   });
 };
 
@@ -76,18 +100,16 @@ export const Uploader = () => {
       const files = Array.from(e.target.files) as File[];
       
       try {
-        // Process sequentially to avoid memory spikes
+        // Process sequentially
         for (const file of files) {
-          const compressedBlobUrl = await resizeImage(file);
-          addPhoto(compressedBlobUrl);
+          const processedUrl = await resizeImage(file);
+          addPhoto(processedUrl);
         }
       } catch (error) {
-        console.error("Image processing failed", error);
-        alert("Some photos could not be processed. Try selecting fewer at a time.");
+        console.error("Batch upload interrupted:", error);
       } finally {
         setIsProcessing(false);
-        // Reset input value so same file can be selected again if needed
-        e.target.value = '';
+        e.target.value = ''; // Reset input
       }
     }
   };
@@ -95,14 +117,12 @@ export const Uploader = () => {
   const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Use createObjectURL instead of readAsDataURL for better memory management with large audio files (like FLAC)
-      // This prevents mobile browser crashes when handling large Base64 strings
       const objectUrl = URL.createObjectURL(file);
       setAudioUrl(objectUrl);
+      e.target.value = ''; // Reset input to allow re-uploading same file if needed
     }
   };
 
-  // Shared classes for consistent sizing
   const buttonBaseClass = "cursor-pointer backdrop-blur-md p-4 rounded-full shadow-lg transition-all flex items-center justify-center gap-2 group-hover:scale-105";
 
   return (
