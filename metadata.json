@@ -1,5 +1,5 @@
 {
-  "name": "Grand Luxury Interactive Tree",
+  "name": "圣诞树最终版",
   "description": "A high-fidelity 3D Christmas experience featuring a 20,000-particle interactive tree, gesture control via webcam, and memory photo hanging.",
   "requestFramePermissions": [
     "camera"

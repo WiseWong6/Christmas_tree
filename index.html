@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Grand Luxury Tree</title>
+    <!-- We keep Tailwind CDN for simplicity in this local version, 
+         though a production app would usually install it via npm. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
     <style>
@@ -13,20 +15,24 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "zustand": "https://aistudiocdn.com/zustand@^5.0.9",
-    "@mediapipe/tasks-vision": "https://aistudiocdn.com/@mediapipe/tasks-vision@^0.10.22-rc.20250304",
-    "three": "https://aistudiocdn.com/three@^0.181.2",
-    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.2",
-    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.7",
-    "@react-three/postprocessing": "https://aistudiocdn.com/@react-three/postprocessing@^3.0.4"
+    "@react-three/fiber": "https://esm.sh/@react-three/fiber@^9.4.2",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@react-three/drei": "https://esm.sh/@react-three/drei@^10.7.7",
+    "vite": "https://esm.sh/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@react-three/postprocessing": "https://esm.sh/@react-three/postprocessing@^3.0.4",
+    "three": "https://esm.sh/three@^0.182.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "zustand": "https://esm.sh/zustand@^5.0.9",
+    "@mediapipe/tasks-vision": "https://esm.sh/@mediapipe/tasks-vision@^0.10.22-rc.20250304"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <!-- Point to the local entry file for Vite -->
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
